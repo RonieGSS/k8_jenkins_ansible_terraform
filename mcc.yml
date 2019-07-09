@@ -1,0 +1,256 @@
+---
+schema_version: v1.1.0
+timezone: Asia/Tokyo
+widgets:
+  - id: menu_terraform
+    type: menu
+    title: TERRAFORM
+    content:
+      - category: terraform
+        name: terraform init
+        description: initialize working dir
+        command: ops/terraform/bin/init
+      - category: terraform
+        name: terraform plan
+        description: check execute plan
+        command: ops/terraform/bin/plan
+      - category: terraform
+        name: terraform apply
+        description: builds or execute infrastructure
+        command: ops/terraform/bin/apply
+      - category: terraform
+        name: terraform plan clusters
+        description: check execute cluster plan
+        command: ops/terraform/bin/plan_clusters
+      - category: terraform
+        name: terraform apply clusters
+        description: builds or execute cluster infrastructure
+        command: ops/terraform/bin/apply_clusters
+      - category: terraform
+        name: terraform destroy clusters
+        description: destroy cluster infrastructure
+        command: ops/terraform/bin/destroy_clusters
+        
+  - id: menu_ansible
+    type: menu
+    title: Ansible
+    content:
+      - category: Ansible
+        name: Ansible encrypt
+        description: encrypt ssl certs and db connection info
+        command: ops/ansible/bin/encrypt
+      - category: Ansible
+        name: Ansible decrypt
+        description: decrypt ssl certs and db connection info
+        command: ops/ansible/bin/decrypt
+      - category: Ansible
+        name: Ansible provisioning
+        description: provision ec2 instance
+        command: ops/ansible/bin/provisioning
+      - category: Serverspec
+        name: Serverspec test
+        description: run serverspec test
+        command: ops/serverspec/bin/test
+
+  - id: menu_k8s_common
+    type: menu
+    title: KUBERNETES COMMON
+    content:
+      - category: gcloud
+        name: gcloud login
+        description: auth gcloud command by oauth
+        command: gcloud auth login
+        
+  - id: menu_k8s_staging
+    type: menu
+    title: STAGING ENVIRONMENT
+    content:
+      - category: k8s cluster
+        name: switch to staging
+        description: switch current context to staging
+        command: ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+      - category: k8s cluster
+        name: resize cluster
+        description: resize the number of the cluster
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/resize-cluster $CLUSTER_STAGING
+      - category: k8s info 
+        name: nodes
+        description: kubectl get nodes
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          kubectl get nodes -o wide -L cloud.google.com/gke-nodepool
+      - category: k8s info 
+        name: pods
+        description: kubectl get pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          kubectl get pods -o wide
+      - category: k8s info 
+        name: services
+        description: kubectl get services
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          kubectl get services -o wide
+      - category: k8s info 
+        name: tail cakephp logs
+        description: kubectl logs
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/logs cakephp cakephp3
+      - category: k8s info 
+        name: tail revel logs
+        description: kubectl logs
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/logs revel revel
+      - category: k8s info 
+        name: env cakephp
+        description: showing environmental vars in cakephp
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/envs cakephp
+      - category: k8s info 
+        name: env revel
+        description: showing environmental vars in revel
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/envs revel
+      - category: k8s info 
+        name: ssh cakephp container
+        description: kubectl exec
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/ssh cakephp cakephp3 bash
+      - category: k8s info 
+        name: ssh revel container
+        description: kubectl exec
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/ssh revel revel sh
+      - category: k8s provision
+        name: apply staging
+        description: kubectl apply resources for both cakephp3 and revel
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/apply staging
+      - category: k8s provision
+        name: destroy staging
+        description: kubectl delete resources for both cakephp3 and revel
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          ops/kubernetes/bin/destroy staging
+      - category: k8s provision
+        name: release cakephp3
+        description: rolling update pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          kubectl patch deployment cakephp-staging-deployment -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+      - category: k8s provision
+        name: release revel
+        description: rolling update pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_STAGING
+          kubectl patch deployment revel-staging-deployment -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+      - category: cloud sql
+        name: mysql cakephp db
+        description: login mysql console
+        command: mysql -h 104.198.93.78 -u root -p staging_frontend
+      - category: cloud sql
+        name: mysql revel db
+        description: login mysql console
+        command: mysql -h 104.198.112.104 -u root -p staging_backend
+        
+       
+  - id: menu_k8s_production
+    type: menu
+    title: PRODUCTION ENVIRONMENT
+    content:
+      - category: k8s cluster
+        name: switch to production
+        description: switch current context to production
+        command: ops/kubernetes/bin/switch-context $CLUSTER_PROD
+      - category: k8s cluster
+        name: resize cluster
+        description: resize the number of the cluster
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          ops/kubernetes/bin/resize-cluster $CLUSTER_PROD
+      - category: k8s info 
+        name: nodes
+        description: kubectl get nodes
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl get nodes -o wide -L cloud.google.com/gke-nodepool
+      - category: k8s info 
+        name: deployment
+        description: kubectl get deployment
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl get deployment -o wide
+      - category: k8s info 
+        name: pods
+        description: kubectl get pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl get pods -o wide
+      - category: k8s info 
+        name: services
+        description: kubectl get services
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl get services -o wide
+      - category: k8s apply
+        name: deployment
+        description: kubectl apply deployment both cakephp3 and revel
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          ops/kubernetes/bin/apply-services prod
+          ops/kubernetes/bin/apply-deployments prod
+      - category: k8s release
+        name: migrate cakephp3
+        description: run migrate, update_acl and update seed of master tables
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          ops/kubernetes/bin/migrate-cakephp3 prod 
+      - category: k8s release
+        name: release revel
+        description: rolling update pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl patch deployment revel -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+      - category: k8s release
+        name: release cakephp3
+        description: rolling update pods
+        command: |
+          ops/kubernetes/bin/switch-context $CLUSTER_PROD
+          kubectl patch deployment cakephp3 -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+      - category: cloud sql
+        name: mysql cakephp db
+        description: login mysql console
+        command: mysql -h 35.189.155.15 -u root -p production_frontend
+      - category: cloud sql
+        name: mysql revel db
+        description: login mysql console
+        command: mysql -h 35.200.10.149 -u root -p production_backend
+
+layout:
+  - name: DASHBOARD
+    rows:
+      - height: 100%
+        cols:
+          - width: 6
+            stacks:
+              - id: menu_terraform
+                height: 33% 
+              - id: menu_ansible
+                height: 33% 
+              - id: menu_k8s_common
+                height: 33% 
+          - width: 6
+            stacks:
+              - id: menu_k8s_staging
+                height: 50% 
+              - id: menu_k8s_production
+                height: 50% 

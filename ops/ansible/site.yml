@@ -1,0 +1,31 @@
+- hosts: compute-ci
+  become: yes
+  gather_facts: no
+  remote_user: user
+  roles:
+    - util
+    - ci_services
+    - docker 
+  vars:
+    project_name: compute-ci
+    util:
+      locale: ja_JP.UTF-8
+      zone: Asia/Tokyo
+      repo_upgrade: none
+      zoneinfo_path: /usr/share/zoneinfo/Asia/Tokyo
+      
+- hosts: compute-log
+  become: yes
+  gather_facts: no
+  remote_user: user
+  roles:
+    - util
+    - log_services
+    - docker
+  vars:
+    util:
+      locale: ja_JP.UTF-8
+      zone: Asia/Tokyo
+      repo_upgrade: none
+      zoneinfo_path: /usr/share/zoneinfo/Asia/Tokyo
+

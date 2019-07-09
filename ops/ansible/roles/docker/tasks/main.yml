@@ -1,0 +1,85 @@
+- name: apt-get install packages
+  apt: pkg={{ item }} state=present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+
+- name: Check docker gpg key.
+  shell: apt-key fingerprint 0EBFCD88 | grep 0EBF | grep CD88
+  register: docker_gpg
+  ignore_errors: True
+  changed_when: False
+
+- name: Add Docker’s official GPG key
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  when: docker_gpg | failed
+
+- name: define lsb_release -cs
+  shell: lsb_release -cs
+  ignore_errors: True
+  register: lsb_release
+  changed_when: False
+
+- name: set up the stable repository
+  shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ lsb_release.stdout }} edge"
+  changed_when: False
+
+- name: Install docker-ce
+  apt: name=docker-ce state=present
+  notify:
+    - restart docker
+
+- name: check docker-compose installed
+  shell: docker-compose -v
+  register: docker_composer_version
+  ignore_errors: True
+  changed_when: False
+
+- name: Install docker-compose
+  shell: |
+    curl -L "https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+  when:
+    docker_composer_version | failed
+
+- name: Remove sudo from sudo docker command
+  become: True
+  become_method: sudo
+  shell: |
+    groupadd docker
+    usermod -aG docker $USER
+    chmod 666 /var/run/docker.sock
+  register: sudo_removal
+  ignore_errors: True
+  changed_when: False
+
+- name: Test docker command
+  shell: docker version 
+  when: sudo_removal is succeeded
+  ignore_errors: True
+  changed_when: False
+
+- name: Remove old containers
+  become: True
+  become_method: sudo
+  shell: sh /home/user/remove-previous.sh
+  register: container_remove
+  ignore_errors: True
+  changed_when: False
+
+- name: Run containers
+  become: True
+  become_method: sudo
+  shell: sh /home/user/startup.sh
+  register: container_start
+  ignore_errors: True
+  changed_when: False
+
+- name: Check if containers are running
+  become: True
+  shell: docker ps 
+  when: container_start is succeeded
+  ignore_errors: True
+  changed_when: False
+

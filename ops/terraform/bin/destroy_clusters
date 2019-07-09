@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# terraform destroy clusters
+#
+cd `dirname $0`/../../../
+BASEDIR=`pwd`
+cd $BASEDIR/ops/terraform/
+docker run --rm -it -u $(id -u):$(id -g)\
+   -v ~/.ssh:/home/docker/.ssh \
+   -v $(pwd):/home/docker/terraform \
+   -e "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_PRODUCTION_APP_CREDENTIALS" \
+   -e "TF_VAR_sql_password=$TF_VAR_sql_password" \
+   -e "TF_VAR_sql_username=$TF_VAR_sql_username" \
+   -e "TF_VAR_sql_keybase=$TF_VAR_sql_keybase" \
+   -e "TF_VAR_prod_sql_password=$TF_VAR_prod_sql_password" \
+   -e "TF_VAR_prod_sql_username=$TF_VAR_prod_sql_username" \
+   -e "TF_VAR_prod_sql_keybase=$TF_VAR_prod_sql_keybase" \
+   -e "TF_VAR_prod_service_url=$TF_VAR_prod_service_url" \
+   -e "TF_VAR_staging_service_url=$TF_VAR_staging_service_url" \
+   -e "TF_VAR_fb_prod_app_id=$TF_VAR_fb_prod_app_id" \
+   -e "TF_VAR_fb_prod_app_secret=$TF_VAR_fb_prod_app_secret" \
+   -e "TF_VAR_fb_staging_app_id=$TF_VAR_fb_staging_app_id" \
+   -e "TF_VAR_fb_staging_app_secret=$TF_VAR_fb_staging_app_secret" \
+   qmu1/terraform /bin/sh -c \
+   'cd /home/docker/terraform;
+   terraform destroy \
+   -target google_container_cluster.cluster-staging \
+   -target google_container_cluster.cluster-production'

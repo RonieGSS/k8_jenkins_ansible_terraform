@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cakephp-staging-deployment
+  labels:
+    app: cakephp-staging-deployment
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: cakephp-staging-deployment
+  template:
+    metadata:
+      labels:
+        app: cakephp-staging-deployment
+    spec:
+      containers:
+        - name: cakephp3
+          image: ${IMAGE_NAME}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 200Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          tty: true
+          stdin: true
+          envFrom:
+            - secretRef:
+                name: cake-secret
+                
+          readinessProbe:
+            httpGet:
+              path: /bundle.js
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+                
+                
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          command: ["/cloud_sql_proxy",
+                    "-instances=${PROJECT}:asia-northeast1:cakephp-staging-instance=tcp:3306",
+                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
+      - name: cloudsql
+        emptyDir:
+

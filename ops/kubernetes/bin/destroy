@@ -1,0 +1,78 @@
+#!/bin/bash
+
+cd `dirname $0`/../
+
+echo "WARNING: Destroying resources, are you sure?(y/n)"
+read answer
+
+case $answer in
+    y)
+        ;;
+    *)
+        return 2>&- || exit
+        ;;
+esac
+
+
+target=$1
+
+if [ "${target}" = "prod" ]; then
+    cd production/
+elif [ "${target}" = "staging" ]; then
+    cd staging/
+else 
+    echo "Error:give me an argument wheither only 'prod' or 'staging'"
+    return 2>&- || exit
+fi
+
+frontapp="cakephp3"
+frontdir="cakephp"
+backapp="revel"
+backdir="revel"
+
+echo "
+======================================================
+  Deleting shared config...
+======================================================
+"
+
+kubectl delete secret cloudsql-instance-credentials
+
+echo "
+======================================================
+  Deleting ${frontapp}...
+======================================================
+"
+
+echo "::: secrets :::"
+kubectl delete secret cake-secret
+
+echo "::: deployment :::"
+envsubst < "./${frontdir}/deployment.yaml" | kubectl delete -f -
+
+echo "::: service :::"
+envsubst < "./${frontdir}/service.yaml" | kubectl delete -f -
+
+echo "
+======================================================
+  Deleting ${backapp}...
+======================================================
+"
+
+echo "::: secrets :::"
+kubectl delete secret revel-secret
+
+echo "::: deployment :::"
+envsubst < "./${backdir}/deployment.yaml" | kubectl delete -f -
+
+echo "::: service :::"
+envsubst < "./${backdir}/service.yaml" | kubectl delete -f -
+
+echo "
+======================================================
+  Deleting ingress...
+======================================================
+"
+
+echo "::: ingress :::"
+envsubst < "./ops/kubernetes/$targetDir/ingress/ingress.yaml" | kubectl delete -f -

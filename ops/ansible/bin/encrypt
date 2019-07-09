@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd `dirname $0`/../../../
+BASEDIR=`pwd`
+
+mysql=/home/docker/ansible/ops/ansible/roles/mysql56/vars/*
+ssl1=/home/docker/ansible/ops/ansible/roles/php56-apache24/templates/ssl/staging/*
+ssl2=/home/docker/ansible/ops/ansible/roles/php56-apache24/templates/ssl/production/*
+
+docker run --rm -it -u $(id -u):$(id -g) \
+       -v $(pwd):/home/docker/ansible \
+       qmu1/ansible /bin/sh -c \
+       "ansible-vault encrypt $mysql $ssl1 $ssl2;
+       chmod -R 775 $mysql
+       chmod -R 644 $ssl1 $ssl2"

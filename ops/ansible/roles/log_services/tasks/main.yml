@@ -1,0 +1,27 @@
+---
+
+- name: Copy logs Dockerfiles and Config file
+  copy:
+    src: /home/docker/ansible/dockerfiles/{{ item }}
+    dest: /home/user
+    backup: yes
+  with_items:
+    - conf
+    - kibana
+    - fluentd
+    - elasticsearch
+- name: install docker-compose for kibana, elasticsearch and fluentd
+  template:
+    src: docker-compose.yml.j2
+    dest: /home/user/docker-compose.yml
+    mode: 444
+- name: install remove-previous script for log container
+  template:
+    src: remove-previous.sh.j2
+    dest: /home/user/remove-previous.sh
+    mode: 444
+- name: install startup script for the efk containers
+  template:
+    src: startup.sh.j2
+    dest: /home/user/startup.sh
+    mode: 444

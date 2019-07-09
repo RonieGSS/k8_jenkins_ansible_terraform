@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: staging-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: ${EXTRENAL_IP_NAME}
+spec:
+  rules:
+    - host: stg.template.net
+      http:
+        paths:
+        - backend:
+            serviceName: cakephp-node-port
+            servicePort: 80
+    - host: stg-admin.template.net
+      http:
+        paths:
+        - backend:
+            serviceName: revel-node-port
+            servicePort: 80

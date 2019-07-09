@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${NAME}
+  labels:
+    app: ${APP}
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: ${APP}
+  template:
+    metadata:
+      labels:
+        app: ${APP}
+    spec:
+      containers:
+        - name: revel
+          image: ${IMAGE_NAME}
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 500Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          ports:
+            - containerPort: 50190
+              protocol: TCP
+          env:
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-prod-db-credentials
+                  key: username
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-prod-db-credentials
+                  key: password
+            - name: FRNC_FRONTEND_DB_HOST
+              value: "127.0.0.1"
+            - name: FRNC_FRONTEND_DB_USER
+              value: "proxyuser"
+            - name: FRNC_FRONTEND_DB_PASS
+              value: "1234"
+            - name: FRNC_FRONTEND_DB_DATABSE
+              value: "cakephp-production-instance"
+            - name: FRNC_BACKEND_DB_HOST
+              value: "127.0.0.1"
+            - name: FRNC_BACKEND_DB_USER
+              value: "proxyuser"
+            - name: FRNC_BACKEND_DB_PASS
+              value: "1234"
+            - name: FRNC_BACKEND_DB_DATABSE
+              value: "revel-production-instance"
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/go/src/github.com/qmu-jp/frnc-backend-src/src/revel/conf/storage-reader.json"
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          resources:
+            limits:
+              cpu: 0.2
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          command: ["/cloud_sql_proxy",
+                    "-instances=${PROJECT}:asia-northeast1:revel-production-instance=tcp:3306",
+                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
+      - name: cloudsql
+        emptyDir:

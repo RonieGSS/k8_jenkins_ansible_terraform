@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: revel
+spec:
+  type: LoadBalancer
+  loadBalancerIP: ${LOAD_BALANCER}
+  selector:
+    app: revel-prod
+  ports:
+    - name: revel
+      protocol: TCP
+      port: 9000
+      targetPort: 50190
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      
+status:
+  loadBalancer:
+    ingress:
+    - ip: ${LOAD_BALANCER}

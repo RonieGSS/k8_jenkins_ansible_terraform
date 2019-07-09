@@ -1,0 +1,5 @@
+#!/bin/bash
+
+podName=$(kubectl get pods | grep $1 | awk 'NR==1{print $1}')
+echo "showing logs from " $podName " -c $2"
+kubectl logs $podName $2 -f

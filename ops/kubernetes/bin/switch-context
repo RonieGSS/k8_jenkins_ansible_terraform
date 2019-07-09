@@ -1,0 +1,5 @@
+#!/bin/sh
+
+gcloud container clusters get-credentials $1 --zone $ZONE --project $PROJECT
+echo "current context is..."
+kubectl config current-context

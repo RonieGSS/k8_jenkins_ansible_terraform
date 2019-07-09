@@ -1,0 +1,22 @@
+---
+
+- name: Copy ci Dockerfile
+  copy:
+    src: /home/docker/ansible/dockerfiles/jenkins
+    dest: /home/user
+    backup: yes
+- name: install docker-compose for jenkins container
+  template:
+    src: docker-compose.yml.j2
+    dest: /home/user/docker-compose.yml
+    mode: 444
+- name: install remove-previous script for jenkins container
+  template:
+    src: remove-previous.sh.j2
+    dest: /home/user/remove-previous.sh
+    mode: 444
+- name: install startup script for jenkins container
+  template:
+    src: startup.sh.j2
+    dest: /home/user/startup.sh
+    mode: 444

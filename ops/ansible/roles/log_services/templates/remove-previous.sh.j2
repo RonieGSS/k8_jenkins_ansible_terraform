@@ -1,0 +1,11 @@
+#!/bin/bash
+# Remove old containers first
+containers=("kibana" "elasticsearch" "fluentd")
+
+for container in ${containers[*]}
+do
+	"docker stop ${container}"
+	"docker rm ${container}"
+done
+
+docker volume rm $(docker volume ls -q)

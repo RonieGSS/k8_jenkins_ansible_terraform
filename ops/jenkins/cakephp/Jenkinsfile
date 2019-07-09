@@ -1,0 +1,86 @@
+// Cakephp Migration and ACL Jobs
+
+// Pipeline Variables
+def app  = 'cakephp3'
+def dir  = 'cakephp'
+def job  = "${dir}-batch"
+def file = 'template-frontend.yaml'
+
+// Pipeline Functions
+
+/**
+ * Deletes the job after completing migration and acl update
+ *
+ * @param job string name of the job
+ */
+def deleteJobAfterCompletion(job) {
+	// Get name of running pod
+	sh("kubectl get pod -l app=$job -o jsonpath=\"{.items[0].metadata.name}\" > podName")
+	def podName = readFile('podName').trim()
+	// Get the status of the pod
+	sh("kubectl get -o template pod/$podName --template={{.status.phase}} > status")
+	def status = readFile('status').trim()
+
+	if (status == 'Running') {
+		echo "$podName is $status"
+		sleep(30)
+		sh("kubectl delete job $job")
+	} else {
+		echo status
+		deleteJobAfterCompletion(job)
+	}
+}
+
+// Pipeline Stages
+pipeline {
+	agent any
+	environment {
+		CLOUD_REGISTRY = credentials('CLOUD_REGISTRY')
+		PROJECT        = credentials('PROJECT')
+	}
+	stages {
+		stage('SCM') {
+			steps {
+				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'repo-jenkins-key', url: 'git@github.com:Roniegss/k8_jenkins_ansible_terraform.git']]])
+			}
+		}
+		stage('Run Staging Schema Migration and ACL') {
+			environment {
+				KUBERNETES_IP      = credentials('KUBERNETES_IP')
+			}
+			steps {
+				script {
+					withKubeConfig(credentialsId: 'kubernetes-user-pass', serverUrl: "https://$KUBERNETES_IP") {
+
+						// Deployment of staging job
+						sh("IMAGE_NAME=$CLOUD_REGISTRY/${app} PROJECT=$PROJECT \
+							envsubst < $WORKSPACE/ops/kubernetes/staging/batch/${file} | kubectl apply -f -")
+						echo 'Describing job'
+						sh("kubectl describe job ${job}")
+						echo 'Running and deleting job'
+						deleteJobAfterCompletion("${job}")
+					}
+				}
+			}
+		}
+		stage('Run Production Schema Migration and ACL') {
+			environment {
+				KUBERNETES_IP         = credentials('PROD_KUBERNETES_IP')
+			}
+			steps {
+				script {
+					withKubeConfig(credentialsId: 'kube_prod_user_pass', serverUrl: "https://$KUBERNETES_IP") {
+
+						// Deployment of production job
+						sh("IMAGE_NAME=$CLOUD_REGISTRY/${app} PROJECT=$PROJECT \
+							envsubst < $WORKSPACE/ops/kubernetes/production/batch/${file} | kubectl apply -f -")
+						echo 'Describing job'
+						sh("kubectl describe job ${job}")
+						echo 'Running and deleting job'
+						deleteJobAfterCompletion("${job}")
+					}
+				}
+			}
+		}
+	} // stages end
+} // pipeline end

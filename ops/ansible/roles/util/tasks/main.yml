@@ -1,0 +1,16 @@
+---
+ 
+- name: set locale to /etc/cloud/cloud.cfg
+  lineinfile: 'dest=/etc/cloud/cloud.cfg line="locale: {{util.locale}}"'
+
+- name: set repo_upgrade to /etc/cloud/cloud.cfg
+  lineinfile: 'dest=/etc/cloud/cloud.cfg regexp="repo_upgrade\:" line="repo_upgrade: {{util.repo_upgrade}}"'
+
+- name: set timezone to Asia/Tokyo
+  timezone:
+    name: Asia/Tokyo
+    
+- name: install ppa
+  apt: name="{{item}}" state=present
+  with_items:
+    - software-properties-common

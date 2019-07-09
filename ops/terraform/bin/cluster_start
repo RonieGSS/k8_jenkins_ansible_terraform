@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# cluster start
+#
+pool="default-pool"
+resize="gcloud container clusters resize"
+echo "
+---------------------------
+  Specify number of nodes
+---------------------------
+"
+read -p 'Node Count: ' nodeCount
+nodeSize="--node-pool $pool --size=${nodeCount}"
+$resize $CLUSTER_PROD $nodeSize
+$resize $CLUSTER_STAGING $nodeSize

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Remove old jenkins container first
+docker stop jenkins
+docker rm jenkins
+docker volume rm $(docker volume ls -q)

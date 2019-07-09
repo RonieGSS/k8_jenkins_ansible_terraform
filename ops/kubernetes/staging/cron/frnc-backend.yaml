@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: revel-cron
+spec:
+  schedule: "* */1 * * *"
+  startingDeadlineSeconds: 300
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cron-template
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: revel
+              image: ${CLOUD_REGISTRY}/revel
+              ports:
+                - containerPort: 50190
+                  protocol: TCP
+          nodeSelector:
+            cloud.google.com/gke-nodepool: cron-job

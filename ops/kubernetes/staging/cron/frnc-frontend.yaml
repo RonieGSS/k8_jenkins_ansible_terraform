@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cakephp-cron
+spec:
+  schedule: "* */1 * * *"
+  startingDeadlineSeconds: 300
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cron-template
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cakephp3
+              image: ${CLOUD_REGISTRY}/cakephp3
+              ports:
+                - containerPort: 80
+                  protocol: TCP
+          nodeSelector:
+            cloud.google.com/gke-nodepool: cron-job

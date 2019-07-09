@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# cluster stop
+#
+pool="default-pool"
+resize="gcloud container clusters resize"
+nodeSize="--node-pool $pool --size=0"
+$resize $CLUSTER_PROD $nodeSize
+$resize $CLUSTER_STAGING $nodeSize

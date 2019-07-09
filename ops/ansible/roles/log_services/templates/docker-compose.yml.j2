@@ -1,0 +1,37 @@
+version: '3'
+services:
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - kibana
+    restart: always
+    environment:
+      DOMAINS: 'log.kibana.ui.com -> http://kibana:5601'
+      STAGE: 'production'
+  elasticsearch:
+    build: elasticsearch/
+    container_name: elasticsearch
+    ports:
+      - '9200:9200'
+  fluentd:
+    build: fluentd/
+    container_name: fluentd
+    volumes: 
+      - ./conf:/fluentd/etc
+    links:
+      - elasticsearch
+    ports:
+      - '24224:24224'
+      - '24224:24224/udp'
+  kibana:
+    build: kibana/
+    container_name: kibana
+    links:
+      - elasticsearch
+    ports:
+      - '5601:5601'
+volumes:
+  conf:

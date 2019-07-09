@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+# terraform plan clusters
+#
+cd `dirname $0`/../../../
+BASEDIR=`pwd`
+cd $BASEDIR/ops/terraform/
+docker run --rm -it -u $(id -u):$(id -g)\
+   -v ~/.ssh:/home/docker/.ssh \
+   -v $(pwd):/home/docker/terraform \
+   -e "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_PRODUCTION_APP_CREDENTIALS" \
+   qmu1/terraform /bin/sh -c \
+   'cd /home/docker/terraform;
+   terraform plan \
+   -target google_container_cluster.cluster-staging \
+   -target google_container_cluster.cluster-production'

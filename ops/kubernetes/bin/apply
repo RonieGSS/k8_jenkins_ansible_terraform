@@ -1,0 +1,76 @@
+#!/bin/bash
+
+cd `dirname $0`/../../../
+
+target=$1
+targetDir=""
+
+if [ "${target}" = "prod" ]; then
+    targetDir="production"
+elif [ "${target}" = "staging" ]; then
+    targetDir="staging"
+else 
+    echo "Error:give me an argument wheither only 'prod' or 'staging'" return 2>&- || exit
+fi
+
+frontapp="cakephp3"
+frontdir="ops/kubernetes/$targetDir/cakephp"
+backapp="revel"
+backdir="ops/kubernetes/$targetDir/revel"
+
+echo "
+======================================================
+  Applying shared config...
+======================================================
+"
+
+kubectl create secret generic "cloudsql-instance-credentials" \
+    --from-file=credentials.json=$GOOGLE_APPLICATION_CREDENTIALS
+
+echo "
+======================================================
+  Applying ${frontapp}...
+======================================================
+"
+
+echo "::: secrets :::"
+ops/kubernetes/bin/generate_k8s_secret_yaml cake-secret ../frnc-frontend/ops/docker/$targetDir/.env > ${frontdir}/secrets.yaml
+envsubst < "./${frontdir}/secrets.yaml" | kubectl apply -f -
+rm ${frontdir}/secrets.yaml
+
+echo "::: deployment :::"
+IMAGE_NAME=$CLOUD_REGISTRY/${frontapp} \
+PROJECT=$PROJECT \
+envsubst < "./${frontdir}/deployment.yaml" | kubectl apply -f -
+
+echo "::: service :::"
+envsubst < "./${frontdir}/service.yaml" | kubectl apply -f -
+
+echo "
+======================================================
+  Applying ${backapp}...
+======================================================
+"
+
+echo "::: secrets :::"
+ops/kubernetes/bin/generate_k8s_secret_yaml revel-secret ../frnc-backend/ops/docker/$targetDir/.env > ${backdir}/secrets.yaml
+envsubst < "./${backdir}/secrets.yaml" | kubectl apply -f -
+rm ${backdir}/secrets.yaml
+
+echo "::: deployment :::"
+IMAGE_NAME=$CLOUD_REGISTRY/${backapp} \
+PROJECT=$PROJECT \
+envsubst < "./${backdir}/deployment.yaml" | kubectl apply -f -
+
+echo "::: service :::"
+envsubst < "./${backdir}/service.yaml" | kubectl apply -f -
+
+echo "
+======================================================
+  Applying ingress...
+======================================================
+"
+
+echo "::: ingress :::"
+EXTRENAL_IP_NAME="frnc-staging" \
+envsubst < "./ops/kubernetes/$targetDir/ingress/ingress.yaml" | kubectl apply -f -

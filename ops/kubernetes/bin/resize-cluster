@@ -1,0 +1,8 @@
+#!/bin/sh
+
+clear >/dev/tty
+echo "Number of nodes ? (default = 2): " >/dev/tty
+tput cnorm >/dev/tty 2>/dev/null || tput vs >/dev/tty 2>/dev/null
+read input </dev/tty
+
+gcloud container clusters resize $1 --size=$input
