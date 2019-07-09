@@ -4,7 +4,7 @@
 def app  = 'revel'
 def dir  = 'revel'
 def job  = "${dir}-batch"
-def file = 'frnc-backend.yaml'
+def file = 'template-backend.yaml'
 
 // Pipeline Functions
 

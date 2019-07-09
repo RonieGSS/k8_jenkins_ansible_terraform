@@ -44,24 +44,24 @@ spec:
                 secretKeyRef:
                   name: cloudsql-prod-db-credentials
                   key: password
-            - name: FRNC_FRONTEND_DB_HOST
+            - name: template_FRONTEND_DB_HOST
               value: "127.0.0.1"
-            - name: FRNC_FRONTEND_DB_USER
+            - name: template_FRONTEND_DB_USER
               value: "proxyuser"
-            - name: FRNC_FRONTEND_DB_PASS
+            - name: template_FRONTEND_DB_PASS
               value: "1234"
-            - name: FRNC_FRONTEND_DB_DATABSE
+            - name: template_FRONTEND_DB_DATABSE
               value: "cakephp-production-instance"
-            - name: FRNC_BACKEND_DB_HOST
+            - name: template_BACKEND_DB_HOST
               value: "127.0.0.1"
-            - name: FRNC_BACKEND_DB_USER
+            - name: template_BACKEND_DB_USER
               value: "proxyuser"
-            - name: FRNC_BACKEND_DB_PASS
+            - name: template_BACKEND_DB_PASS
               value: "1234"
-            - name: FRNC_BACKEND_DB_DATABSE
+            - name: template_BACKEND_DB_DATABSE
               value: "revel-production-instance"
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: "/go/src/github.com/qmu-jp/frnc-backend-src/src/revel/conf/storage-reader.json"
+              value: "/go/src/github.com/qmu-jp/template-backend-src/src/revel/conf/storage-reader.json"
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.11
           resources:

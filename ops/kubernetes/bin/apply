@@ -34,7 +34,7 @@ echo "
 "
 
 echo "::: secrets :::"
-ops/kubernetes/bin/generate_k8s_secret_yaml cake-secret ../frnc-frontend/ops/docker/$targetDir/.env > ${frontdir}/secrets.yaml
+ops/kubernetes/bin/generate_k8s_secret_yaml cake-secret ../template-frontend/ops/docker/$targetDir/.env > ${frontdir}/secrets.yaml
 envsubst < "./${frontdir}/secrets.yaml" | kubectl apply -f -
 rm ${frontdir}/secrets.yaml
 
@@ -53,7 +53,7 @@ echo "
 "
 
 echo "::: secrets :::"
-ops/kubernetes/bin/generate_k8s_secret_yaml revel-secret ../frnc-backend/ops/docker/$targetDir/.env > ${backdir}/secrets.yaml
+ops/kubernetes/bin/generate_k8s_secret_yaml revel-secret ../template-backend/ops/docker/$targetDir/.env > ${backdir}/secrets.yaml
 envsubst < "./${backdir}/secrets.yaml" | kubectl apply -f -
 rm ${backdir}/secrets.yaml
 
@@ -72,5 +72,5 @@ echo "
 "
 
 echo "::: ingress :::"
-EXTRENAL_IP_NAME="frnc-staging" \
+EXTRENAL_IP_NAME="template-staging" \
 envsubst < "./ops/kubernetes/$targetDir/ingress/ingress.yaml" | kubectl apply -f -

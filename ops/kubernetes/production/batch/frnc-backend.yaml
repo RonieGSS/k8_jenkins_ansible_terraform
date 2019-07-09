@@ -38,14 +38,14 @@ spec:
                 secretKeyRef:
                   name: cloudsql-staging-db-credentials
                   key: password
-            - name: FRNC_FRONTEND_DB_HOST
+            - name: template_FRONTEND_DB_HOST
               value: "127.0.0.1"
             - name: DATABASE_PORT
               value: "3306"
             - name: DATABASE_NAME
               value: "production_backend"
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: "/go/src/github.com/qmu-jp/frnc-backend-src/src/revel/conf/storage-reader.json"
+              value: "/go/src/github.com/qmu-jp/template-backend-src/src/revel/conf/storage-reader.json"
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.11
           resources:
